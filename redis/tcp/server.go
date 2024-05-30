@@ -13,13 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func ListenAndServe(addr string, handler tcp.Handler) error {
-	listener, err := net.Listen("tcp", addr)
-	if err != nil {
-		return err
-	}
-	logrus.Info("tcp server started on ", addr)
-
+func ListenAndServe(listener net.Listener, maxConn int, handler tcp.Handler) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 
@@ -37,7 +31,14 @@ func ListenAndServe(addr string, handler tcp.Handler) error {
 	}()
 
 	var wg sync.WaitGroup
+	connCouner := 0
+
 	for {
+		if connCouner >= maxConn {
+			time.Sleep(10 * time.Millisecond)
+			continue
+		}
+
 		conn, err := listener.Accept()
 		if err != nil {
 			errCh <- err
@@ -47,9 +48,14 @@ func ListenAndServe(addr string, handler tcp.Handler) error {
 
 		ctx := context.Background()
 		wg.Add(1)
+		connCouner++
 
 		go func() {
-			defer wg.Done()
+			defer func() {
+				wg.Done()
+				connCouner--
+			}()
+
 			handler.Handle(ctx, conn)
 		}()
 	}
@@ -68,5 +74,4 @@ func ListenAndServe(addr string, handler tcp.Handler) error {
 	}
 
 	logrus.Info("tcp server stopped")
-	return nil
 }

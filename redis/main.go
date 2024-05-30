@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net"
 	"redis/tcp"
 
 	"github.com/sirupsen/logrus"
@@ -9,8 +10,9 @@ import (
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
 
-	err := tcp.ListenAndServe(":6379", &tcp.EchoHandler{})
+	listener, err := net.Listen("tcp", "127.0.0.1:6379")
 	if err != nil {
 		logrus.Error(err)
 	}
+	tcp.ListenAndServe(listener, 64, &tcp.EchoHandler{})
 }
