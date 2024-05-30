@@ -7,6 +7,10 @@ import (
 )
 
 func main() {
+	logrus.SetLevel(logrus.DebugLevel)
+
 	err := tcp.ListenAndServe(":6379", &tcp.EchoHandler{})
-	logrus.Error(err)
+	if err != nil {
+		logrus.Error(err)
+	}
 }

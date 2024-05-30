@@ -28,5 +28,6 @@ func (h *EchoHandler) Handle(ctx context.Context, conn net.Conn) {
 
 // Close implement tcp.Handler
 func (h *EchoHandler) Close() error {
+	logrus.Info("close echo handler")
 	return nil
 }
