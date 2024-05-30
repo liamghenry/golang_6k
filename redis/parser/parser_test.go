@@ -29,9 +29,9 @@ func TestParseOne(t *testing.T) {
 		},
 		{
 			"*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n",
-			protocol.MakeMultiRaw([]reply.Reply{
-				protocol.MakeBulkStr("foo"),
-				protocol.MakeBulkStr("bar"),
+			protocol.MakeMultiBulk([][]byte{
+				protocol.MakeBulkStr("foo").Marshal(),
+				protocol.MakeBulkStr("bar").Marshal(),
 			}),
 		},
 	}

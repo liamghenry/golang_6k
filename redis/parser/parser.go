@@ -78,13 +78,17 @@ func parseOne(br *bufio.Reader) reply.Reply {
 		} else {
 			n, _ := strconv.Atoi(line[:len(line)-2])
 			if n == -1 {
-				return protocol.MakeMultiRaw(nil)
+				return protocol.MakeMultiBulk(nil)
 			} else {
-				replies := make([]reply.Reply, n)
+				replies := make([][]byte, n)
 				for i := 0; i < n; i++ {
-					replies[i] = parseOne(br)
+					bulk, ok := parseOne(br).(*protocol.BulkStr)
+					if !ok {
+						return protocol.MakeSimpleErr("invalid protocol")
+					}
+					replies[i] = bulk.Marshal()
 				}
-				return protocol.MakeMultiRaw(replies)
+				return protocol.MakeMultiBulk(replies)
 			}
 		}
 	default:

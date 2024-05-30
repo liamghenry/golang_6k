@@ -58,6 +58,23 @@ func (b *BulkStr) Marshal() []byte {
 	return []byte("$" + strconv.Itoa(len(b.str)) + CRLF + b.str + CRLF)
 }
 
+// MultiBulk
+type MultiBulk struct {
+	items [][]byte
+}
+
+func MakeMultiBulk(items [][]byte) *MultiBulk {
+	return &MultiBulk{items: items}
+}
+
+func (m *MultiBulk) Marshal() []byte {
+	buf := []byte("*" + strconv.Itoa(len(m.items)) + CRLF)
+	for _, item := range m.items {
+		buf = append(buf, MakeBulkStr(string(item)).Marshal()...)
+	}
+	return buf
+}
+
 // MultiRaw
 type MultiRaw struct {
 	items []reply.Reply
