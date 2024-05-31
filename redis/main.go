@@ -2,6 +2,7 @@ package main
 
 import (
 	"net"
+	"redis/redis"
 	"redis/tcp"
 
 	"github.com/sirupsen/logrus"
@@ -14,5 +15,6 @@ func main() {
 	if err != nil {
 		logrus.Error(err)
 	}
-	tcp.ListenAndServe(listener, 64, &tcp.EchoHandler{})
+	logrus.Info("server start at: ", listener.Addr())
+	tcp.ListenAndServe(listener, 64, redis.MakeRedisServer())
 }

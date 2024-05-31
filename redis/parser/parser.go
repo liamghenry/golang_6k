@@ -48,7 +48,10 @@ func parseOne(br *bufio.Reader) reply.Reply {
 		if err != nil {
 			return protocol.MakeSimpleErr(err.Error())
 		} else {
-			num, _ := strconv.Atoi(line[:len(line)-2])
+			num, err := strconv.Atoi(line[:len(line)-2])
+			if err != nil {
+				return protocol.MakeSimpleErr(err.Error())
+			}
 			return protocol.MakeInteger(num)
 		}
 	// BulkStr
