@@ -6,6 +6,7 @@ import (
 )
 
 const CRLF = "\r\n"
+var nullBulkBytes = []byte("$-1\r\n")
 
 type SimpleStr struct {
 	str string
@@ -54,7 +55,14 @@ func MakeBulkStr(str string) *BulkStr {
 	return &BulkStr{str: str}
 }
 
+func MakeNil() *BulkStr {
+	return MakeBulkStr("")
+}
+
 func (b *BulkStr) Marshal() []byte {
+	if len(b.str) == 0 {
+		return nullBulkBytes
+	}
 	return []byte("$" + strconv.Itoa(len(b.str)) + CRLF + b.str + CRLF)
 }
 
