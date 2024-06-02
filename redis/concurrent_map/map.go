@@ -50,16 +50,28 @@ func (m *ConcurrentMap) Get(key string) (interface{}, bool) {
 	return v, ok
 }
 
-// Set set value by key, return 0 if key not exist, 1 if key exist and update value
+// Set set value by key, return 1 if key not exist, 0 if key exist and update value
 func (m *ConcurrentMap) Set(key string, value interface{}) int {
 	slot := &m.slots[m.getSlotIndex(key)]
 	slot.Lock()
 	defer slot.Unlock()
 	if _, ok := slot.m[key]; ok {
 		slot.m[key] = value
-		return 1
+		return 0
 	}
 	slot.m[key] = value
+	return 1
+}
+
+// Remove remove key, return 0 if key not exist, 1 if key exist and remove
+func (m *ConcurrentMap) Remove(key string) int {
+	slot := &m.slots[m.getSlotIndex(key)]
+	slot.Lock()
+	defer slot.Unlock()
+	if _, ok := slot.m[key]; ok {
+		delete(slot.m, key)
+		return 1
+	}
 	return 0
 }
 

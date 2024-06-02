@@ -43,9 +43,11 @@ func NewTimeWheel(slotNum int, interval time.Duration) *TimeWheel {
 func (tw *TimeWheel) Start() {
 	ticker := time.NewTicker(tw.interval)
 	tw.ticker = ticker
-	for range ticker.C {
-		tw.tickHandler()
-	}
+	go func() {
+		for range ticker.C {
+			tw.tickHandler()
+		}
+	}()
 }
 
 func (tw *TimeWheel) tickHandler() {
