@@ -56,3 +56,16 @@ func TestCmdSetWithPxExpire(t *testing.T) {
 	logrus.Info(string(reply.Marshal()))
 	assert.Equal(t, protocol.MakeNil().Marshal(), reply.Marshal())
 }
+
+func TestSetMulti(t *testing.T) {
+	db := NewDB()
+
+	reply := db.Execute("mset", [][]byte{[]byte("foo"), []byte("bar"), []byte("foo2"), []byte("bar2")})
+	assert.Equal(t, protocol.MakeSimpleStr("OK").Marshal(), reply.Marshal())
+
+	reply = db.Execute("get", [][]byte{[]byte("foo")})
+	assert.Equal(t, protocol.MakeBulkStr("bar").Marshal(), reply.Marshal())
+
+	reply = db.Execute("get", [][]byte{[]byte("foo2")})
+	assert.Equal(t, protocol.MakeBulkStr("bar2").Marshal(), reply.Marshal())
+}

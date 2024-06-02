@@ -59,3 +59,17 @@ func TestSetAndThenGet(t *testing.T) {
 	assert.Equal(t, true, ok)
 	assert.Equal(t, "value", v)
 }
+
+func TestSetMulti(t *testing.T) {
+	cm := NewConcurrentMap(16)
+
+	cm.SetMulti([]string{"key1", "key2"}, []any{"value1", "value2"})
+
+	v1, ok1 := cm.Get("key1")
+	assert.Equal(t, true, ok1)
+	assert.Equal(t, "value1", v1)
+
+	v2, ok2 := cm.Get("key2")
+	assert.Equal(t, true, ok2)
+	assert.Equal(t, "value2", v2)
+}

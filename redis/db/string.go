@@ -11,6 +11,7 @@ import (
 func init() {
 	registerCMD("set", cmdSet)
 	registerCMD("get", cmdGet)
+	registerCMD("mset", cmdMSet)
 }
 
 // cmdSet handles the SET command.
@@ -64,4 +65,23 @@ func cmdGet(db *DB, args [][]byte) reply.Reply {
 	// NOTE
 	a := string(v.([]byte))
 	return protocol.MakeBulkStr(a)
+}
+
+// cmdMset handles the MSET command.
+func cmdMSet(db *DB, args [][]byte) reply.Reply {
+	keys := []string{}
+	values := []interface{}{}
+
+	// args is key1, value1, key2, value2, ..., get keys values
+	for i := 0; i < len(args); i += 2 {
+		keys = append(keys, string(args[i]))
+		values = append(values, args[i+1])
+	}
+
+	if len(keys) != len(values) {
+		return protocol.MakeSimpleErr("ERR wrong number of arguments for 'mset' command")
+	}
+
+	db.items.SetMulti(keys, values)
+	return protocol.MakeSimpleStr("OK")
 }

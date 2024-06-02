@@ -1,6 +1,9 @@
 package concurrentmap
 
-import "sync"
+import (
+	"sort"
+	"sync"
+)
 
 // ConcurrentMap is a thread-safe map, divided int multi slot, every slot is a map with lock
 type ConcurrentMap struct {
@@ -63,6 +66,43 @@ func (m *ConcurrentMap) Set(key string, value interface{}) int {
 	return 1
 }
 
+// SetMulti
+func (m *ConcurrentMap) SetMulti(keys []string, values []any) {
+	slotIndexList := []uint32{}
+
+	slotIndexMap := make(map[uint32]struct{})
+	for _, key := range keys {
+		slotIndex := m.getSlotIndex(key)
+		if _, ok := slotIndexMap[slotIndex]; !ok {
+			slotIndexList = append(slotIndexList, slotIndex)
+			slotIndexMap[slotIndex] = struct{}{}
+		}	
+	}
+
+	// sort sortIndexList by value, from little to bigger
+	sort.Slice(slotIndexList, func(i, j int) bool {
+		return slotIndexList[i] < slotIndexList[j]
+	})
+
+	// lock slot
+	for _, slotIndex := range slotIndexList {
+		slot := &m.slots[slotIndex]
+		slot.Lock()
+	}
+
+	// set value
+	for i, key := range keys {
+		slot := &m.slots[m.getSlotIndex(key)]
+		slot.m[key] = values[i]
+	}
+
+	// unlock slot
+	for _, slotIndex := range slotIndexList {
+		slot := &m.slots[slotIndex]
+		slot.Unlock()
+	}
+}
+
 // Remove remove key, return 0 if key not exist, 1 if key exist and remove
 func (m *ConcurrentMap) Remove(key string) int {
 	slot := &m.slots[m.getSlotIndex(key)]
@@ -77,7 +117,7 @@ func (m *ConcurrentMap) Remove(key string) int {
 
 // getSlotIndex get slot index by key, its fnv32 & len(slotNum) -1
 func (m *ConcurrentMap) getSlotIndex(key string) uint32 {
-	return fnv32(key) & uint32(m.slotNum - 1)
+	return fnv32(key) & uint32(m.slotNum-1)
 }
 
 const (
